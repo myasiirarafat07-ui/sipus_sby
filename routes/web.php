@@ -6,19 +6,18 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\KatalogController;
 use App\Http\Controllers\DendaController;
 use App\Http\Controllers\LaporanController;
+use App\Http\Controllers\AnggotaPeminjamanController;
+use App\Http\Controllers\AnggotaPengembalianController;
 use App\Http\Middleware\RoleMiddleware;
 
 use App\Http\Controllers\HomeController;
 
-Route::get('/', [HomeController::class, 'index'])->name('home');
-Route::get('/buku/{id}', [HomeController::class, 'detailBuku'])->name('buku.detail');
-Route::get('/katalog', [KatalogController::class, 'index'])->name('katalog');
+// Public route redirects to login
+Route::get('/', function() { return redirect()->route('login'); })->name('home');
 
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [AuthController::class, 'login']);
-    Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
-    Route::post('/register', [AuthController::class, 'register']);
 });
 
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth');
@@ -26,32 +25,47 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout')->middl
 Route::middleware(['auth', RoleMiddleware::class.':admin'])->prefix('admin')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
     
+    // Kelola Buku
     Route::get('/buku', [AdminController::class, 'buku'])->name('admin.buku');
     Route::post('/buku', [AdminController::class, 'storeBuku'])->name('admin.buku.store');
     Route::put('/buku/{id}', [AdminController::class, 'updateBuku'])->name('admin.buku.update');
     Route::delete('/buku/{id}', [AdminController::class, 'deleteBuku'])->name('admin.buku.destroy');
 
+    // Kelola Anggota
     Route::get('/anggota', [AdminController::class, 'anggota'])->name('admin.anggota');
+    Route::post('/anggota', [AdminController::class, 'storeAnggota'])->name('admin.anggota.store');
     Route::put('/anggota/{id}', [AdminController::class, 'updateAnggota'])->name('admin.anggota.update');
     Route::delete('/anggota/{id}', [AdminController::class, 'deleteAnggota'])->name('admin.anggota.destroy');
-    Route::post('/anggota/{id}/reset-password', [AdminController::class, 'resetPassword'])->name('admin.anggota.reset_password');
 
+    // Kelola Peminjaman (Approval)
     Route::get('/peminjaman', [AdminController::class, 'peminjaman'])->name('admin.peminjaman');
     Route::post('/peminjaman/{id}/approve', [AdminController::class, 'approvePeminjaman'])->name('admin.peminjaman.approve');
-    Route::post('/peminjaman/{id}/return', [AdminController::class, 'returnPeminjaman'])->name('admin.peminjaman.return');
+    Route::post('/peminjaman/{id}/reject', [AdminController::class, 'rejectPeminjaman'])->name('admin.peminjaman.reject');
 
+    // Kelola Pengembalian
+    Route::get('/pengembalian', [AdminController::class, 'pengembalian'])->name('admin.pengembalian');
+    Route::post('/pengembalian/{id}/confirm', [AdminController::class, 'confirmPengembalian'])->name('admin.pengembalian.confirm');
+
+    // Kelola Denda
     Route::get('/denda', [DendaController::class, 'index'])->name('admin.denda');
-    Route::post('/denda/{id}/pay', [DendaController::class, 'pay'])->name('admin.denda.pay');
+    Route::post('/denda', [DendaController::class, 'store'])->name('admin.denda.store');
+    Route::put('/denda/{id}', [DendaController::class, 'update'])->name('admin.denda.update');
     Route::delete('/denda/{id}', [DendaController::class, 'destroy'])->name('admin.denda.destroy');
 
+    // Laporan
     Route::get('/laporan', [LaporanController::class, 'index'])->name('admin.laporan');
     Route::get('/laporan/cetak', [LaporanController::class, 'cetak'])->name('admin.laporan.cetak');
 });
 
 Route::middleware(['auth', RoleMiddleware::class.':anggota'])->group(function () {
+    // Katalog & Pencarian
+    Route::get('/katalog', [KatalogController::class, 'index'])->name('katalog');
     Route::post('/katalog/{id}/pinjam', [KatalogController::class, 'pinjam'])->name('katalog.pinjam');
-    Route::get('/riwayat', [KatalogController::class, 'riwayat'])->name('katalog.riwayat');
+    
+    // Status Peminjaman & Riwayat
+    Route::get('/peminjaman', [AnggotaPeminjamanController::class, 'index'])->name('anggota.peminjaman');
+    Route::post('/peminjaman/{id}/kembalikan', [AnggotaPeminjamanController::class, 'kembalikan'])->name('anggota.peminjaman.kembalikan');
 
-    Route::get('/profil', [\App\Http\Controllers\ProfilController::class, 'index'])->name('anggota.profil');
-    Route::put('/profil', [\App\Http\Controllers\ProfilController::class, 'update'])->name('anggota.profil.update');
+    // Informasi Denda
+    Route::get('/pengembalian', [AnggotaPengembalianController::class, 'index'])->name('anggota.pengembalian');
 });

@@ -13,6 +13,7 @@ class Denda extends Model
         'hari_terlambat',
         'total_denda',
         'status_bayar',
+        'keterangan',
     ];
 
     public function peminjaman()

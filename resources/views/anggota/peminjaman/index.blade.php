@@ -44,8 +44,8 @@
                     <td class="py-4 px-4">{{ $p->tgl_kembali ? \Carbon\Carbon::parse($p->tgl_kembali)->format('d M Y') : '-' }}</td>
                     <td class="py-4 px-4">
                         @if($p->status === 'menunggu')
-                            <span class="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-semibold rounded-full">Menunggu</span>
-                        @elseif($p->status === 'aktif')
+                            <span class="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-semibold rounded-full">Menunggu Konfirmasi</span>
+                        @elseif($p->status === 'disetujui')
                             <span class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">Dipinjam</span>
                         @elseif($p->status === 'selesai')
                             <span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">Dikembalikan</span>
@@ -69,10 +69,13 @@
                         @endif
                     </td>
                     <td class="py-4 px-4 text-right">
-                        @if($p->status === 'aktif')
-                            <button onclick="alert('Silakan bawa buku fisik ke meja Pustakawan untuk memproses pengembalian ini.')" class="text-sm px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl shadow-sm transition-all hover:scale-105">Ajukan Pengembalian</button>
+                        @if($p->status === 'disetujui')
+                            <form method="POST" action="{{ route('anggota.peminjaman.kembalikan', $p->id) }}">
+                                @csrf
+                                <button type="submit" class="text-sm px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl shadow-sm transition-all hover:scale-105">Ajukan Pengembalian</button>
+                            </form>
                         @elseif($p->status === 'menunggu')
-                            <button onclick="alert('Silakan ambil buku fisik di meja Pustakawan.')" class="text-sm px-4 py-2 bg-gray-200 text-gray-700 rounded-xl shadow-sm transition-all hover:scale-105">Instruksi</button>
+                            <button onclick="alert('Permintaan peminjaman sedang diproses oleh admin.')" class="text-sm px-4 py-2 bg-gray-200 text-gray-700 rounded-xl shadow-sm transition-all hover:scale-105">Menunggu</button>
                         @endif
                     </td>
                 </tr>

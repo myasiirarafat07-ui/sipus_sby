@@ -38,20 +38,16 @@
             <div class="book-card opacity-0 translate-y-8 transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)] glass-panel p-5 rounded-[1.5rem] flex flex-col justify-between hover:-translate-y-1.5 hover:shadow-xl group border border-white/60">
                 <div>
                     <div class="bg-gradient-to-br from-brand-blue-50 to-gray-100 w-full aspect-[3/4] rounded-2xl mb-5 flex items-center justify-center shadow-inner overflow-hidden relative border border-gray-200/50 group-hover:shadow-md transition-shadow p-4">
-                        @if($buku->cover_image)
-                            <img src="{{ Storage::url($buku->cover_image) }}" alt="{{ $buku->judul }}" class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 drop-shadow-md">
-                        @else
-                            <div class="absolute top-0 right-0 w-16 h-16 bg-brand-yellow-400/20 rounded-bl-[3rem]"></div>
-                            <span class="text-brand-blue-300 font-semibold absolute rotate-[-10deg] text-xl opacity-30">{{ $buku->kategori }}</span>
-                            <!-- Sampul Default -->
-                            <div class="w-12 h-16 border-2 border-brand-blue-200 rounded flex flex-col group-hover:scale-110 transition-transform duration-300">
-                                <div class="h-2 border-b-2 border-brand-blue-200 bg-brand-blue-100"></div>
-                                <div class="flex-1 flex items-center justify-center text-brand-blue-200 text-xs font-bold">P</div>
-                            </div>
-                        @endif
+                        <div class="absolute top-0 right-0 w-16 h-16 bg-brand-yellow-400/20 rounded-bl-[3rem]"></div>
+                        <span class="text-brand-blue-300 font-semibold absolute rotate-[-10deg] text-xl opacity-30">{{ $buku->kategori }}</span>
+                        <!-- Sampul Default -->
+                        <div class="w-12 h-16 border-2 border-brand-blue-200 rounded flex flex-col group-hover:scale-110 transition-transform duration-300">
+                            <div class="h-2 border-b-2 border-brand-blue-200 bg-brand-blue-100"></div>
+                            <div class="flex-1 flex items-center justify-center text-brand-blue-200 text-xs font-bold">P</div>
+                        </div>
                     </div>
                     <h3 class="font-bold text-lg text-gray-800 line-clamp-2 leading-tight mb-1.5 group-hover:text-brand-blue-600 transition-colors">
-                        <a href="{{ route('buku.detail', $buku->id) }}">{{ $buku->judul }}</a>
+                        {{ $buku->judul }}
                     </h3>
                     <p class="text-sm text-gray-500 mb-4 font-medium">{{ $buku->pengarang }}</p>
                     <div class="flex flex-wrap items-center gap-2 mb-5">

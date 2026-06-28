@@ -1,13 +1,13 @@
 @extends('layouts.app')
 
-@section('title', 'Data Peminjaman')
+@section('title', 'Data Pengembalian')
 
 @section('content')
 <div x-data="{ show: false }" x-init="setTimeout(() => show = true, 100)" x-cloak x-show="show" x-transition:enter="transition ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-1000" x-transition:enter-start="opacity-0 translate-y-8" x-transition:enter-end="opacity-100 translate-y-0">
 <div class="mb-8 flex justify-between items-center">
     <div>
-        <h1 class="text-3xl font-bold text-gray-800">Data Peminjaman</h1>
-        <p class="text-gray-500 mt-1">Kelola permohonan dan pengembalian buku</p>
+        <h1 class="text-3xl font-bold text-gray-800">Data Pengembalian</h1>
+        <p class="text-gray-500 mt-1">Konfirmasi pengembalian buku</p>
     </div>
 </div>
 
@@ -34,8 +34,8 @@
                     <td class="py-4 px-4">
                         @if($p->status === 'menunggu')
                             <span class="px-3 py-1 bg-yellow-100 text-yellow-700 text-xs font-semibold rounded-full">Menunggu</span>
-                        @elseif($p->status === 'aktif')
-                            <span class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">Aktif</span>
+                        @elseif($p->status === 'disetujui')
+                            <span class="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">Disetujui</span>
                         @elseif($p->status === 'selesai')
                             <span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">Selesai</span>
                         @else
@@ -43,15 +43,10 @@
                         @endif
                     </td>
                     <td class="py-4 px-4 text-right flex justify-end gap-2">
-                        @if($p->status === 'menunggu')
-                            <form method="POST" action="{{ route('admin.peminjaman.approve', $p->id) }}">
+                        @if($p->status === 'disetujui')
+                            <form method="POST" action="{{ route('admin.pengembalian.confirm', $p->id) }}">
                                 @csrf
-                                <button type="submit" class="text-sm px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-xl shadow-sm transition">Setujui</button>
-                            </form>
-                        @elseif($p->status === 'aktif')
-                            <form method="POST" action="{{ route('admin.peminjaman.return', $p->id) }}">
-                                @csrf
-                                <button type="submit" class="text-sm px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-xl shadow-sm transition">Kembalikan</button>
+                                <button type="submit" class="text-sm px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-xl shadow-sm transition">Konfirmasi Pengembalian</button>
                             </form>
                         @else
                             <span class="text-gray-400 text-sm">-</span>

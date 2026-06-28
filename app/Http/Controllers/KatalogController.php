@@ -14,27 +14,15 @@ class KatalogController extends Controller
         $query = Buku::query();
         if ($request->has('q') && $request->q != '') {
             $query->where('judul', 'like', '%' . $request->q . '%')
-                  ->orWhere('pengarang', 'like', '%' . $request->q . '%');
+                  ->orWhere('pengarang', 'like', '%' . $request->q . '%')
+                  ->orWhere('isbn', 'like', '%' . $request->q . '%')
+                  ->orWhere('kategori', 'like', '%' . $request->q . '%');
         }
         $bukus = $query->get();
         $anggota = auth()->check() ? auth()->user()->anggota : null;
-        return view('katalog.index', compact('bukus', 'anggota'));
+        return view('anggota.katalog.index', compact('bukus', 'anggota'));
     }
 
-    public function riwayat()
-    {
-        $anggota = auth()->user()->anggota;
-        if (!$anggota) {
-            return redirect('/')->with('error', 'Profil anggota tidak ditemukan.');
-        }
-        $peminjamans = Peminjaman::where('anggota_id', $anggota->id)->with('buku')->latest()->get();
-        
-        $dendaBelumDibayar = Denda::whereHas('peminjaman', function($q) use ($anggota) {
-            $q->where('anggota_id', $anggota->id);
-        })->where('status_bayar', 'belum')->sum('total_denda');
-
-        return view('katalog.riwayat', compact('peminjamans', 'dendaBelumDibayar'));
-    }
     public function pinjam(Request $request, $buku_id)
     {
         $buku = Buku::findOrFail($buku_id);
@@ -50,30 +38,31 @@ class KatalogController extends Controller
         }
 
         $activeLoans = Peminjaman::where('anggota_id', $anggota->id)
-            ->whereIn('status', ['menunggu', 'aktif'])
+            ->whereIn('status', ['menunggu', 'disetujui'])
             ->count();
 
         if ($activeLoans >= 5) {
-            return back()->with('error', 'Anda telah mencapai batas maksimal peminjaman aktif (5 buku). Harap kembalikan buku sebelumnya.');
+            return back()->with('error', 'Anda telah mencapai batas maksimal peminjaman (5 buku). Harap kembalikan buku sebelumnya.');
         }
 
         $alreadyBorrowed = Peminjaman::where('anggota_id', $anggota->id)
             ->where('buku_id', $buku->id)
-            ->whereIn('status', ['menunggu', 'aktif'])
+            ->whereIn('status', ['menunggu', 'disetujui'])
             ->exists();
 
         if ($alreadyBorrowed) {
             return back()->with('error', 'Anda sudah mengajukan peminjaman atau sedang meminjam buku ini. Harap kembalikan terlebih dahulu.');
         }
 
+        // Tgl pinjam and jatuh tempo will be set by admin on approval.
         Peminjaman::create([
             'anggota_id' => $anggota->id,
             'buku_id' => $buku->id,
-            'tgl_pinjam' => now(),
-            'tgl_jatuh_tempo' => now()->addDays(7), // Pinjam 7 hari
+            'tgl_pinjam' => now(), // Placeholder
+            'tgl_jatuh_tempo' => now()->addDays(7), // Placeholder
             'status' => 'menunggu'
         ]);
 
-        return back()->with('success', 'Permintaan peminjaman berhasil diajukan.');
+        return back()->with('success', 'Permintaan peminjaman berhasil diajukan dan sedang menunggu konfirmasi admin.');
     }
 }

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->date('tgl_pinjam');
             $table->date('tgl_jatuh_tempo');
             $table->date('tgl_kembali')->nullable();
-            $table->enum('status', ['menunggu', 'aktif', 'ditolak', 'selesai'])->default('menunggu');
+            $table->enum('status', ['menunggu', 'disetujui', 'ditolak', 'selesai'])->default('menunggu');
             $table->timestamps();
         });
     }

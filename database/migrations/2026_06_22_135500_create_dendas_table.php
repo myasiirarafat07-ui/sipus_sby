@@ -17,6 +17,7 @@ return new class extends Migration
             $table->integer('hari_terlambat');
             $table->decimal('total_denda', 10, 2);
             $table->enum('status_bayar', ['belum', 'lunas'])->default('belum');
+            $table->text('keterangan')->nullable();
             $table->timestamps();
         });
     }

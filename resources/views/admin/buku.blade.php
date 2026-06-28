@@ -42,7 +42,6 @@
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="border-b border-gray-200">
-                        <th class="py-4 px-4 font-semibold text-gray-600 w-20">Cover</th>
                         <th class="py-4 px-4 font-semibold text-gray-600">ISBN</th>
                         <th class="py-4 px-4 font-semibold text-gray-600">Judul</th>
                         <th class="py-4 px-4 font-semibold text-gray-600">Pengarang</th>
@@ -53,13 +52,6 @@
                 <tbody>
                     @forelse($bukus as $b)
                     <tr class="border-b border-gray-100/50 hover:bg-white/50 hover:scale-[1.01] transition-all duration-300">
-                        <td class="py-4 px-4">
-                            @if($b->cover_image)
-                                <img src="{{ Storage::url($b->cover_image) }}" alt="Cover" class="w-12 h-16 object-cover rounded-md shadow-sm border border-gray-200">
-                            @else
-                                <div class="w-12 h-16 bg-gray-100 rounded-md flex items-center justify-center text-gray-400 text-xs border border-gray-200">Kosong</div>
-                            @endif
-                        </td>
                         <td class="py-4 px-4 text-gray-600">{{ $b->isbn }}</td>
                         <td class="py-4 px-4 font-medium text-gray-800">{{ $b->judul }}</td>
                         <td class="py-4 px-4 text-gray-600">{{ $b->pengarang }}</td>
@@ -127,22 +119,9 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
                                 <input type="text" name="kategori" x-model="formData.kategori" class="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-white/50 focus:bg-white focus:ring-2 focus:ring-blue-500/50 outline-none transition" required>
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Lokasi Rak</label>
-                                <input type="text" name="lokasi_rak" x-model="formData.lokasi_rak" placeholder="Contoh: Rak A-1" class="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-white/50 focus:bg-white focus:ring-2 focus:ring-blue-500/50 outline-none transition">
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Sinopsis Singkat</label>
-                                <textarea name="sinopsis" x-model="formData.sinopsis" rows="3" class="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-white/50 focus:bg-white focus:ring-2 focus:ring-blue-500/50 outline-none transition"></textarea>
-                            </div>
                             <div class="md:col-span-2">
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Stok Total</label>
                                 <input type="number" name="stok" x-model="formData.stok" min="0" class="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-white/50 focus:bg-white focus:ring-2 focus:ring-blue-500/50 outline-none transition" required>
-                            </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Cover Buku (Gambar)</label>
-                                <input type="file" name="cover_image" accept="image/*" class="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-white/50 focus:bg-white focus:ring-2 focus:ring-blue-500/50 outline-none transition file:mr-4 file:py-2.5 file:px-5 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer file:shadow-md file:transition-all cursor-pointer">
-                                <p class="text-xs text-gray-500 mt-2">* Kosongkan jika tidak ingin mengunggah atau mengubah cover.</p>
                             </div>
                         </div>
                     </div>

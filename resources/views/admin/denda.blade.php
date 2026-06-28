@@ -7,15 +7,26 @@
 <div x-data="{ 
     showDeleteModal: false,
     deleteId: null,
+    showModal: false,
+    formData: { peminjaman_id: '', hari_terlambat: '', total_denda: '', keterangan: '' },
+    openModal(type) {
+        this.formData = { peminjaman_id: '', hari_terlambat: '', total_denda: '', keterangan: '' };
+        this.showModal = true;
+    },
     confirmDelete(id) {
         this.deleteId = id;
         this.showDeleteModal = true;
     }
 }">
 
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-800">Kelola Denda</h1>
-        <p class="text-gray-500 mt-1">Daftar sanksi keterlambatan pengembalian buku.</p>
+    <div class="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-gray-800">Kelola Denda</h1>
+            <p class="text-gray-500 mt-1">Daftar sanksi keterlambatan pengembalian buku.</p>
+        </div>
+        <button @click="openModal('add')" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl shadow-lg hover:shadow-xl transition-all hover:scale-105 font-semibold flex items-center gap-2">
+            <span>+</span> Input Denda Manual
+        </button>
     </div>
 
     <!-- Table -->
@@ -65,6 +76,55 @@
                     @endforelse
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    <!-- Form Modal -->
+    <div x-show="showModal" style="display: none;" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div x-show="showModal" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100" class="fixed inset-0 bg-gray-500/50 backdrop-blur-sm transition-opacity" aria-hidden="true"></div>
+
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div x-show="showModal" @click.away="showModal = false" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" class="relative z-10 inline-block align-bottom glass rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full">
+                
+                <form action="{{ route('admin.denda.store') }}" method="POST">
+                    @csrf
+                    
+                    <div class="px-8 pt-8 pb-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-2xl font-bold text-gray-800" id="modal-title">Input Denda Manual</h3>
+                            <button type="button" @click="showModal = false" class="text-gray-400 hover:text-gray-500 focus:outline-none">
+                                <span class="text-2xl">&times;</span>
+                            </button>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">ID Peminjaman</label>
+                                <input type="number" name="peminjaman_id" x-model="formData.peminjaman_id" class="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-white/50 focus:bg-white focus:ring-2 focus:ring-blue-500/50 outline-none transition" required>
+                                <p class="text-xs text-gray-500 mt-1">ID Peminjaman yang disetujui atau aktif.</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Hari Terlambat</label>
+                                <input type="number" name="hari_terlambat" x-model="formData.hari_terlambat" class="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-white/50 focus:bg-white focus:ring-2 focus:ring-blue-500/50 outline-none transition" required min="0">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Total Denda (Rp)</label>
+                                <input type="number" name="total_denda" x-model="formData.total_denda" class="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-white/50 focus:bg-white focus:ring-2 focus:ring-blue-500/50 outline-none transition" required min="0">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Keterangan (Opsional)</label>
+                                <textarea name="keterangan" x-model="formData.keterangan" rows="2" class="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-white/50 focus:bg-white focus:ring-2 focus:ring-blue-500/50 outline-none transition"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="px-8 py-4 bg-gray-50/50 border-t border-gray-100 flex justify-end gap-4 rounded-b-3xl">
+                        <button type="button" @click="showModal = false" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100/50 hover:bg-gray-200 hover:scale-105 rounded-xl transition-all duration-300">Batal</button>
+                        <button type="submit" class="px-6 py-2.5 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-md transition-all hover:scale-105">Simpan</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 

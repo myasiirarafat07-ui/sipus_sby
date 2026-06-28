@@ -17,7 +17,7 @@ class PeminjamanObserver
         if ($peminjaman->wasChanged('status')) {
             $buku = $peminjaman->buku;
 
-            if ($peminjaman->status === 'aktif') {
+            if ($peminjaman->status === 'disetujui') {
                 // Kurangi stok buku saat dipinjam
                 if ($buku && $buku->stok > 0) {
                     $buku->decrement('stok');

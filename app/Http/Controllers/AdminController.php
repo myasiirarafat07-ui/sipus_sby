@@ -93,6 +93,37 @@ class AdminController extends Controller
     }
 
 
+    public function storeAnggota(Request $request)
+    {
+        $data = $request->validate([
+            'nama_lengkap' => 'required',
+            'nik' => 'required|unique:anggota',
+            'alamat' => 'required',
+            'no_telepon' => 'required',
+            'email' => 'required|email|unique:anggota',
+            'username' => 'required|unique:users',
+            'password' => 'required|min:6',
+        ]);
+
+        $user = \App\Models\User::create([
+            'username' => $data['username'],
+            'password' => \Illuminate\Support\Facades\Hash::make($data['password']),
+            'role' => 'anggota',
+        ]);
+
+        Anggota::create([
+            'user_id' => $user->id,
+            'nama_lengkap' => $data['nama_lengkap'],
+            'nik' => $data['nik'],
+            'alamat' => $data['alamat'],
+            'no_telepon' => $data['no_telepon'],
+            'email' => $data['email'],
+            'tgl_registrasi' => now(),
+        ]);
+
+        return back()->with('success', 'Anggota berhasil ditambahkan.');
+    }
+
     public function updateAnggota(Request $request, $id)
     {
         $anggota = Anggota::findOrFail($id);
@@ -111,28 +142,16 @@ class AdminController extends Controller
     {
         $anggota = Anggota::findOrFail($id);
         if ($anggota->user) {
-            $anggota->user->delete(); // Hapus juga data user login-nya
+            $anggota->user->delete();
         }
         $anggota->delete();
         return back()->with('success', 'Anggota berhasil dihapus.');
     }
 
-    public function resetPassword($id)
-    {
-        $anggota = Anggota::findOrFail($id);
-        if ($anggota->user) {
-            $anggota->user->update([
-                'password' => \Illuminate\Support\Facades\Hash::make('password123')
-            ]);
-            return back()->with('success', 'Password akun ' . $anggota->nama_lengkap . ' berhasil di-reset menjadi "password123".');
-        }
-        return back()->with('error', 'Gagal mereset password. User tidak ditemukan.');
-    }
-
     public function peminjaman()
     {
         $peminjamans = Peminjaman::with(['anggota', 'buku'])->latest()->get();
-        return view('admin.peminjaman', compact('peminjamans'));
+        return view('admin.peminjaman.index', compact('peminjamans'));
     }
 
     public function approvePeminjaman($id)
@@ -144,37 +163,53 @@ class AdminController extends Controller
         }
 
         if ($peminjaman->buku->stok <= 0) {
-            return back()->with('error', 'Gagal menyetujui. Stok buku sudah habis dipinjam oleh pengguna lain.');
+            return back()->with('error', 'Gagal menyetujui. Stok buku sudah habis.');
         }
 
-        $peminjaman->status = 'aktif';
-        $peminjaman->save(); // Stok buku dikurangi otomatis lewat Observer
+        $peminjaman->status = 'disetujui';
+        // Auto calculate 7 days due date from today
+        $peminjaman->tgl_pinjam = now()->toDateString();
+        $peminjaman->tgl_jatuh_tempo = now()->addDays(7)->toDateString();
+        $peminjaman->save();
 
         return back()->with('success', 'Peminjaman disetujui.');
     }
 
-    public function returnPeminjaman($id)
+    public function rejectPeminjaman($id)
     {
         $peminjaman = Peminjaman::findOrFail($id);
         
-        if ($peminjaman->status !== 'aktif') {
+        if ($peminjaman->status !== 'menunggu') {
+            return back()->with('error', 'Status peminjaman tidak valid.');
+        }
+
+        $peminjaman->status = 'ditolak';
+        $peminjaman->save();
+
+        return back()->with('success', 'Peminjaman ditolak.');
+    }
+
+    public function pengembalian()
+    {
+        $peminjamans = Peminjaman::with(['anggota', 'buku'])->where('status', 'disetujui')->latest()->get();
+        return view('admin.pengembalian.index', compact('peminjamans'));
+    }
+
+    public function confirmPengembalian($id)
+    {
+        $peminjaman = Peminjaman::findOrFail($id);
+        
+        if ($peminjaman->status !== 'disetujui') {
             return back()->with('error', 'Buku belum dipinjam atau sudah dikembalikan.');
         }
 
-        $tglJatuhTempo = \Carbon\Carbon::parse($peminjaman->tgl_jatuh_tempo)->startOfDay();
-        $tglKembali = now()->startOfDay();
-        $hariTerlambat = 0;
-
-        if ($tglKembali->gt($tglJatuhTempo)) {
-            $hariTerlambat = $tglKembali->diffInDays($tglJatuhTempo);
-        }
-
         $peminjaman->status = 'selesai';
-        $peminjaman->tgl_kembali = now();
-        $peminjaman->save(); // Stok buku ditambah otomatis lewat Observer
+        $peminjaman->tgl_kembali = now()->toDateString();
+        $peminjaman->save();
 
-        if ($hariTerlambat > 0) {
-            return redirect()->route('admin.denda')->with('error', 'Buku dikembalikan, namun terdapat denda keterlambatan sebesar Rp' . number_format($hariTerlambat * 1000, 0, ',', '.'));
+        // Check for Denda via Observer or redirect
+        if (Denda::where('peminjaman_id', $peminjaman->id)->exists()) {
+            return redirect()->route('admin.denda')->with('error', 'Buku dikembalikan, namun terdapat denda keterlambatan.');
         }
 
         return back()->with('success', 'Buku berhasil dikembalikan tepat waktu.');
