@@ -14,7 +14,7 @@ class AdminController extends Controller
     {
         $totalBuku = Buku::count();
         $totalAnggota = Anggota::count();
-        $totalPeminjamanAktif = Peminjaman::where('status', 'aktif')->count();
+        $totalPeminjamanAktif = Peminjaman::where('status', 'disetujui')->count();
         $totalDenda = Denda::where('status_bayar', 'belum')->sum('total_denda');
 
         return view('admin.dashboard', compact('totalBuku', 'totalAnggota', 'totalPeminjamanAktif', 'totalDenda'));
@@ -36,14 +36,7 @@ class AdminController extends Controller
             'tahun_terbit' => 'required|integer',
             'kategori' => 'required',
             'stok' => 'required|integer|min:0',
-            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'lokasi_rak' => 'nullable|string|max:255',
-            'sinopsis' => 'nullable|string',
         ]);
-
-        if ($request->hasFile('cover_image')) {
-            $data['cover_image'] = $request->file('cover_image')->store('covers', 'public');
-        }
 
         Buku::create($data);
         return back()->with('success', 'Buku berhasil ditambahkan.');
@@ -60,17 +53,7 @@ class AdminController extends Controller
             'tahun_terbit' => 'required|integer',
             'kategori' => 'required',
             'stok' => 'required|integer|min:0',
-            'cover_image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
-            'lokasi_rak' => 'nullable|string|max:255',
-            'sinopsis' => 'nullable|string',
         ]);
-
-        if ($request->hasFile('cover_image')) {
-            if ($buku->cover_image && \Illuminate\Support\Facades\Storage::disk('public')->exists($buku->cover_image)) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($buku->cover_image);
-            }
-            $data['cover_image'] = $request->file('cover_image')->store('covers', 'public');
-        }
 
         $buku->update($data);
         return back()->with('success', 'Buku berhasil diperbarui.');
@@ -79,9 +62,6 @@ class AdminController extends Controller
     public function deleteBuku($id)
     {
         $buku = Buku::findOrFail($id);
-        if ($buku->cover_image && \Illuminate\Support\Facades\Storage::disk('public')->exists($buku->cover_image)) {
-            \Illuminate\Support\Facades\Storage::disk('public')->delete($buku->cover_image);
-        }
         $buku->delete();
         return back()->with('success', 'Buku berhasil dihapus.');
     }
@@ -167,12 +147,14 @@ class AdminController extends Controller
         }
 
         $peminjaman->status = 'disetujui';
-        // Auto calculate 7 days due date from today
-        $peminjaman->tgl_pinjam = now()->toDateString();
-        $peminjaman->tgl_jatuh_tempo = now()->addDays(7)->toDateString();
         $peminjaman->save();
 
-        return back()->with('success', 'Peminjaman disetujui.');
+        // Kurangi stok buku
+        $buku = $peminjaman->buku;
+        $buku->stok -= 1;
+        $buku->save();
+
+        return back()->with('success', 'Peminjaman disetujui. Stok buku telah dikurangi.');
     }
 
     public function rejectPeminjaman($id)
@@ -207,11 +189,30 @@ class AdminController extends Controller
         $peminjaman->tgl_kembali = now()->toDateString();
         $peminjaman->save();
 
-        // Check for Denda via Observer or redirect
-        if (Denda::where('peminjaman_id', $peminjaman->id)->exists()) {
-            return redirect()->route('admin.denda')->with('error', 'Buku dikembalikan, namun terdapat denda keterlambatan.');
+        // Kembalikan stok buku
+        $buku = $peminjaman->buku;
+        $buku->stok += 1;
+        $buku->save();
+
+        // Cek keterlambatan & Denda Otomatis
+        $tgl_jatuh_tempo = \Carbon\Carbon::parse($peminjaman->tgl_jatuh_tempo)->startOfDay();
+        $tgl_kembali = \Carbon\Carbon::parse($peminjaman->tgl_kembali)->startOfDay();
+
+        if ($tgl_kembali->gt($tgl_jatuh_tempo)) {
+            $hari_terlambat = $tgl_jatuh_tempo->diffInDays($tgl_kembali);
+            $total_denda = $hari_terlambat * 1000;
+
+            Denda::create([
+                'peminjaman_id' => $peminjaman->id,
+                'hari_terlambat' => $hari_terlambat,
+                'total_denda' => $total_denda,
+                'status_bayar' => 'belum',
+                'keterangan' => 'Denda keterlambatan sistem otomatis.'
+            ]);
+
+            return redirect()->route('admin.denda')->with('error', "Buku dikembalikan terlambat {$hari_terlambat} hari. Denda otomatis Rp" . number_format($total_denda, 0, ',', '.') . " telah ditambahkan.");
         }
 
-        return back()->with('success', 'Buku berhasil dikembalikan tepat waktu.');
+        return back()->with('success', 'Buku berhasil dikembalikan tepat waktu dan stok buku telah dikembalikan.');
     }
 }

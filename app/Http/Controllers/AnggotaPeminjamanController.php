@@ -21,7 +21,11 @@ class AnggotaPeminjamanController extends Controller
                                  ->latest()
                                  ->get();
         
-        return view('anggota.peminjaman.index', compact('peminjamans'));
+        $dendaBelumDibayar = Denda::whereHas('peminjaman', function($q) use ($anggota) {
+            $q->where('anggota_id', $anggota->id);
+        })->where('status_bayar', 'belum')->sum('total_denda');
+        
+        return view('anggota.peminjaman.index', compact('peminjamans', 'dendaBelumDibayar'));
     }
 
     public function kembalikan(Request $request, $id)

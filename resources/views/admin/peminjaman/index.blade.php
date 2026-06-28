@@ -16,6 +16,7 @@
         <table class="w-full text-left border-collapse">
             <thead>
                 <tr class="border-b border-gray-200">
+                    <th class="py-4 px-4 font-semibold text-gray-600">ID Pinjam</th>
                     <th class="py-4 px-4 font-semibold text-gray-600">Anggota</th>
                     <th class="py-4 px-4 font-semibold text-gray-600">Buku</th>
                     <th class="py-4 px-4 font-semibold text-gray-600">Tgl Pinjam</th>
@@ -27,6 +28,7 @@
             <tbody>
                 @forelse($peminjamans as $p)
                 <tr class="border-b border-gray-100/50 hover:bg-white/50 transition-colors">
+                    <td class="py-4 px-4 text-gray-600">#{{ $p->id }}</td>
                     <td class="py-4 px-4">{{ $p->anggota->nama_lengkap }}</td>
                     <td class="py-4 px-4 text-gray-800 font-medium">{{ $p->buku->judul }}</td>
                     <td class="py-4 px-4">{{ \Carbon\Carbon::parse($p->tgl_pinjam)->format('d M Y') }}</td>
@@ -59,7 +61,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="6" class="py-8 text-center text-gray-500">Belum ada data peminjaman</td>
+                    <td colspan="7" class="py-8 text-center text-gray-500">Belum ada data peminjaman</td>
                 </tr>
                 @endforelse
             </tbody>

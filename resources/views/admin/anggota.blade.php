@@ -6,12 +6,20 @@
 <div x-data="{ show: false }" x-init="setTimeout(() => show = true, 100)" x-cloak x-show="show" x-transition:enter="transition ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-1000" x-transition:enter-start="opacity-0 translate-y-8" x-transition:enter-end="opacity-100 translate-y-0">
 <div x-data="{ 
     showModal: false, 
+    isEdit: false,
     showDeleteModal: false,
     deleteId: null,
-    formData: { id: '', nama_lengkap: '', nik: '', alamat: '', no_telepon: '', email: '', username: '' },
-    openModal(data) {
+    formData: { id: '', nama_lengkap: '', nik: '', alamat: '', no_telepon: '', email: '', username: '', password: '' },
+    openAddModal() {
+        this.isEdit = false;
+        this.formData = { id: '', nama_lengkap: '', nik: '', alamat: '', no_telepon: '', email: '', username: '', password: '' };
+        this.showModal = true;
+    },
+    openEditModal(data) {
+        this.isEdit = true;
         this.formData = { ...data };
         this.formData.username = data.user ? data.user.username : '';
+        this.formData.password = '';
         this.showModal = true;
     },
     confirmDelete(id) {
@@ -20,11 +28,17 @@
     }
 }">
 
-    <div class="mb-8 flex flex-col justify-between items-start gap-4">
+    <div class="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
             <h1 class="text-3xl font-bold text-gray-800">Kelola Anggota</h1>
             <p class="text-gray-500 mt-1">Daftar anggota perpustakaan.</p>
         </div>
+        <button @click="openAddModal()" class="btn-primary px-6 py-2.5 rounded-2xl flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+            </svg>
+            Tambah Anggota
+        </button>
     </div>
 
     <!-- Table -->
@@ -48,11 +62,7 @@
                         <td class="py-4 px-4 text-gray-600">{{ $a->email }}</td>
                         <td class="py-4 px-4 text-gray-600">{{ \Carbon\Carbon::parse($a->tgl_registrasi)->format('d M Y') }}</td>
                         <td class="py-4 px-4 text-right flex justify-end gap-2">
-                            <button @click="openModal({{ json_encode($a->load('user')) }})" class="text-blue-500 hover:text-blue-700 font-semibold px-3 py-1 rounded-xl hover:bg-blue-50 transition-all">Edit</button>
-                            <form action="{{ route('admin.anggota.reset_password', $a->id) }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin mereset password akun ini menjadi password default?')">
-                                @csrf
-                                <button type="submit" class="text-orange-500 hover:text-orange-700 font-semibold px-3 py-1 rounded-xl hover:bg-orange-50 transition-all">Reset Password</button>
-                            </form>
+                            <button @click="openEditModal({{ json_encode($a->load('user')) }})" class="text-blue-500 hover:text-blue-700 font-semibold px-3 py-1 rounded-xl hover:bg-blue-50 transition-all">Edit</button>
                             <button @click="confirmDelete({{ $a->id }})" class="text-red-500 hover:text-red-700 font-semibold px-3 py-1 rounded-xl hover:bg-red-50 transition-all">Hapus</button>
                         </td>
                     </tr>
@@ -75,13 +85,13 @@
 
             <div x-show="showModal" @click.away="showModal = false" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" x-transition:leave="ease-in duration-200" x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" class="relative z-10 inline-block align-bottom glass rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-2xl sm:w-full">
                 
-                <form :action="'{{ url('admin/anggota') }}/' + formData.id" method="POST">
+                <form :action="isEdit ? '{{ url('admin/anggota') }}/' + formData.id : '{{ route('admin.anggota.store') }}'" method="POST">
                     @csrf
-                    @method('PUT')
+                    <input type="hidden" name="_method" value="PUT" x-bind:disabled="!isEdit">
                     
                     <div class="px-8 pt-8 pb-6">
                         <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-2xl font-bold text-gray-800" id="modal-title">Edit Anggota</h3>
+                            <h3 class="text-2xl font-bold text-gray-800" id="modal-title" x-text="isEdit ? 'Edit Anggota' : 'Tambah Anggota'"></h3>
                             <button type="button" @click="showModal = false" class="text-gray-400 hover:text-gray-500 focus:outline-none">
                                 <span class="text-2xl">&times;</span>
                             </button>
@@ -108,6 +118,19 @@
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
                                 <input type="email" name="email" x-model="formData.email" class="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-white/50 focus:bg-white focus:ring-2 focus:ring-blue-500/50 outline-none transition" required>
                             </div>
+                            
+                            <template x-if="!isEdit">
+                                <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 mt-2 pt-4 border-t border-gray-100">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Username (Login)</label>
+                                        <input type="text" name="username" x-model="formData.username" class="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-white/50 focus:bg-white focus:ring-2 focus:ring-blue-500/50 outline-none transition" :required="!isEdit">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                                        <input type="password" name="password" x-model="formData.password" class="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-white/50 focus:bg-white focus:ring-2 focus:ring-blue-500/50 outline-none transition" :required="!isEdit">
+                                    </div>
+                                </div>
+                            </template>
                             
                         </div>
                     </div>

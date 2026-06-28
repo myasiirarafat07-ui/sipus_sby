@@ -8,9 +8,24 @@
     showDeleteModal: false,
     deleteId: null,
     showModal: false,
-    formData: { peminjaman_id: '', hari_terlambat: '', total_denda: '', keterangan: '' },
-    openModal(type) {
-        this.formData = { peminjaman_id: '', hari_terlambat: '', total_denda: '', keterangan: '' };
+    isEdit: false,
+    editId: null,
+    formData: { peminjaman_id: '', hari_terlambat: '', total_denda: '', keterangan: '', status_bayar: 'belum' },
+    openModal(type, data = null) {
+        if (type === 'edit') {
+            this.isEdit = true;
+            this.editId = data.id;
+            this.formData = { 
+                peminjaman_id: data.peminjaman_id, 
+                hari_terlambat: data.hari_terlambat, 
+                total_denda: data.total_denda, 
+                keterangan: data.keterangan || '',
+                status_bayar: data.status_bayar || 'belum'
+            };
+        } else {
+            this.isEdit = false;
+            this.formData = { peminjaman_id: '', hari_terlambat: '', total_denda: '', keterangan: '', status_bayar: 'belum' };
+        }
         this.showModal = true;
     },
     confirmDelete(id) {
@@ -61,11 +76,14 @@
                         </td>
                         <td class="py-4 px-4 text-right flex justify-end gap-2">
                             @if($d->status_bayar === 'belum')
-                            <form action="{{ route('admin.denda.pay', $d->id) }}" method="POST">
+                            <form action="{{ route('admin.denda.update', $d->id) }}" method="POST">
                                 @csrf
+                                @method('PUT')
+                                <input type="hidden" name="status_bayar" value="lunas">
                                 <button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-semibold px-3 py-1 rounded-xl shadow-md transition-all">Lunas</button>
                             </form>
                             @endif
+                            <button @click="openModal('edit', {{ json_encode($d) }})" class="text-blue-500 hover:text-blue-700 font-semibold px-3 py-1 rounded-xl hover:bg-blue-50 transition-all">Edit</button>
                             <button @click="confirmDelete({{ $d->id }})" class="text-red-500 hover:text-red-700 font-semibold px-3 py-1 rounded-xl hover:bg-red-50 transition-all">Hapus</button>
                         </td>
                     </tr>
@@ -88,12 +106,15 @@
 
             <div x-show="showModal" @click.away="showModal = false" x-transition:enter="ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" class="relative z-10 inline-block align-bottom glass rounded-3xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-xl sm:w-full">
                 
-                <form action="{{ route('admin.denda.store') }}" method="POST">
+                <form :action="isEdit ? '{{ url('admin/denda') }}/' + editId : '{{ route('admin.denda.store') }}'" method="POST">
                     @csrf
+                    <template x-if="isEdit">
+                        <input type="hidden" name="_method" value="PUT">
+                    </template>
                     
                     <div class="px-8 pt-8 pb-6">
                         <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-2xl font-bold text-gray-800" id="modal-title">Input Denda Manual</h3>
+                            <h3 class="text-2xl font-bold text-gray-800" id="modal-title" x-text="isEdit ? 'Edit Denda' : 'Input Denda Manual'"></h3>
                             <button type="button" @click="showModal = false" class="text-gray-400 hover:text-gray-500 focus:outline-none">
                                 <span class="text-2xl">&times;</span>
                             </button>
@@ -112,6 +133,13 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Total Denda (Rp)</label>
                                 <input type="number" name="total_denda" x-model="formData.total_denda" class="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-white/50 focus:bg-white focus:ring-2 focus:ring-blue-500/50 outline-none transition" required min="0">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Status Pembayaran</label>
+                                <select name="status_bayar" x-model="formData.status_bayar" class="w-full px-4 py-3 rounded-2xl border border-gray-200 bg-white/50 focus:bg-white focus:ring-2 focus:ring-blue-500/50 outline-none transition" required>
+                                    <option value="belum">Belum Bayar</option>
+                                    <option value="lunas">Lunas</option>
+                                </select>
                             </div>
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1">Keterangan (Opsional)</label>

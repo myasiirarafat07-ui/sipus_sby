@@ -45,6 +45,10 @@ class DendaController extends Controller
             $denda->total_denda = $request->input('total_denda');
         }
 
+        if ($request->has('hari_terlambat')) {
+            $denda->hari_terlambat = $request->input('hari_terlambat');
+        }
+
         $denda->save();
         return back()->with('success', 'Data denda berhasil diperbarui.');
     }

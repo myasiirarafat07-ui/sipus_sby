@@ -3,7 +3,7 @@
 @section('title', 'Login')
 
 @section('content')
-<div class="min-h-[85vh] flex flex-col justify-center items-center" x-data="{ show: false }" x-init="setTimeout(() => show = true, 50)">
+<div class="flex flex-col justify-center items-center w-full" x-data="{ show: false }" x-init="setTimeout(() => show = true, 50)">
     <div class="w-full max-w-md" x-cloak x-show="show" x-transition:enter="transition ease-[cubic-bezier(0.34,1.56,0.64,1)] duration-700" x-transition:enter-start="opacity-0 translate-y-8" x-transition:enter-end="opacity-100 translate-y-0">
         <div class="text-center mb-8">
             <img src="{{ asset('images/City_of_Surabaya_Logo.png') }}" alt="Logo Kota Surabaya" class="w-24 h-auto mx-auto mb-6 drop-shadow-lg hover:scale-110 transition-transform duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]">
