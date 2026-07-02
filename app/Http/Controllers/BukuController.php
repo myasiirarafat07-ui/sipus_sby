@@ -66,9 +66,11 @@ class BukuController extends Controller
     // Anggota: Cari Buku / Katalog (Diagram 14)
     public function cariBuku(Request $request)
     {
-        $kataKunci = $request->input('search');
+        $kataKunci = $request->input('q');
         if ($kataKunci) {
-            $bukus = Buku::where('judul', 'like', "%{$kataKunci}%")->latest()->get();
+            $bukus = Buku::where('judul', 'like', "%{$kataKunci}%")
+                         ->orWhere('pengarang', 'like', "%{$kataKunci}%")
+                         ->latest()->get();
         } else {
             $bukus = Buku::latest()->get();
         }

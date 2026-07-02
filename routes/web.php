@@ -77,7 +77,6 @@ Route::middleware(['auth', RoleMiddleware::class . ':anggota'])->group(function 
     
     // Status Peminjaman & Riwayat
     Route::get('/peminjaman', [PeminjamanController::class, 'lihatStatusPeminjaman'])->name('anggota.peminjaman');
-    Route::post('/peminjaman/{id}/kembalikan', [PengembalianController::class, 'konfirmasiPengembalian'])->name('anggota.peminjaman.kembalikan');
 
     // Informasi Denda
     Route::get('/pengembalian', [DendaController::class, 'tampilkanDenda'])->name('anggota.pengembalian');

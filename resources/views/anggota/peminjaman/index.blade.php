@@ -72,10 +72,7 @@
                     </td>
                     <td class="py-4 px-4 text-right">
                         @if($p->status === 'disetujui')
-                            <form method="POST" action="{{ route('anggota.peminjaman.kembalikan', $p->id) }}">
-                                @csrf
-                                <button type="submit" class="text-sm px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl shadow-sm transition-all hover:scale-105">Ajukan Pengembalian</button>
-                            </form>
+                            <span class="text-sm px-4 py-2 bg-indigo-50 text-indigo-700 rounded-xl font-medium inline-block border border-indigo-100">Harap kembalikan ke petugas</span>
                         @elseif($p->status === 'menunggu')
                             <button onclick="alert('Permintaan peminjaman sedang diproses oleh admin.')" class="text-sm px-4 py-2 bg-gray-200 text-gray-700 rounded-xl shadow-sm transition-all hover:scale-105">Menunggu</button>
                         @endif

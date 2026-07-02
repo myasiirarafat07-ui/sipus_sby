@@ -26,4 +26,9 @@ class Peminjaman extends Model
     {
         return $this->belongsTo(Buku::class);
     }
+
+    public function denda()
+    {
+        return $this->hasOne(Denda::class);
+    }
 }
