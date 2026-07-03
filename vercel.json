@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "framework": null,
+  "outputDirectory": "public",
   "env": {
     "APP_PACKAGES_CACHE": "/tmp/packages.php",
     "APP_SERVICES_CACHE": "/tmp/services.php"
@@ -10,18 +10,22 @@
       "runtime": "vercel-php@0.8.0"
     }
   },
-  "rewrites": [
+  "routes": [
     {
-      "source": "/build/(.*)",
-      "destination": "/public/build/$1"
+      "src": "/build/(.*)",
+      "dest": "/build/$1"
     },
     {
-      "source": "/favicon.ico",
-      "destination": "/public/favicon.ico"
+      "src": "/(favicon\\.ico|robots\\.txt)",
+      "dest": "/$1"
     },
     {
-      "source": "/(.*)",
-      "destination": "/api/index.php"
+      "src": "/(images|css|js)/(.*)",
+      "dest": "/$1/$2"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/api/index.php"
     }
   ]
 }
